@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>소파스튜디오 — Sofa Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FFFFFF;
+  --ink:#1A1410;
+  --gold:#7C5533;
+  --gold-l:#A8734A;
+  --muted:#9A9390;
+  --surf:#F7F5F2;
+  --line:#E8E4DF;
+  --cream:#FFFFFF;
+  --f:'Noto Sans KR',sans-serif;
+  --fs:'Noto Sans KR',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* 모바일에서 커서 기본으로 */
+@media(pointer:fine){body{cursor:none}}
+.cursor,.cursor-ring{display:none}
+@media(pointer:fine){
+  .cursor{display:block;position:fixed;width:8px;height:8px;background:var(--ink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .3s,height .3s,background .3s}
+  .cursor-ring{display:block;position:fixed;width:36px;height:36px;border:1px solid var(--gold);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .12s ease;opacity:.6}
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;width:100%;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:60px;
+  transition:background .5s,backdrop-filter .5s;
+}
+nav.scrolled{background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.nav-logo{
+  font-family:var(--f);font-size:13px;font-weight:400;
+  letter-spacing:5px;text-transform:uppercase;
+  text-decoration:none;color:var(--ink);
+}
+.nav-logo .en{color:var(--gold);font-weight:300}
+.nav-center{display:flex;gap:36px;list-style:none}
+.nav-center a{
+  font-size:11px;font-weight:300;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--ink);text-decoration:none;opacity:.55;transition:opacity .2s;
+  position:relative;padding-bottom:3px;
+}
+.nav-center a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width .3s}
+.nav-center a:hover{opacity:1}
+.nav-center a:hover::after{width:100%}
+.nav-btn{
+  font-size:10px;font-weight:400;letter-spacing:3px;text-transform:uppercase;
+  color:var(--cream);background:var(--ink);text-decoration:none;
+  padding:10px 22px;transition:background .25s;
+}
+.nav-btn:hover{background:var(--gold)}
+.hamburger{
+  display:none;flex-direction:column;gap:5px;
+  background:none;border:none;padding:6px;cursor:pointer;
+}
+.hamburger span{display:block;width:22px;height:1px;background:var(--ink);transition:all .35s}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+
+/* 드로어 */
+.drawer{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:#FFFFFF;
+  flex-direction:column;justify-content:center;
+  padding:0 28px;gap:0;
+  overflow-y:auto;
+}
+.drawer.open{display:flex}
+.drawer-top{
+  position:fixed;top:0;left:0;right:0;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;border-bottom:1px solid var(--line);
+  background:#fff;z-index:1;
+}
+.drawer-logo{font-size:12px;font-weight:400;letter-spacing:4px;text-transform:uppercase;color:var(--ink)}
+.drawer-logo .en{color:var(--gold);font-weight:300}
+.drawer-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink);font-weight:200;line-height:1}
+.drawer-links{display:flex;flex-direction:column;gap:0;margin-top:56px}
+.drawer-link{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(14px,3.5vw,22px) 0;border-bottom:1px solid var(--line);
+  text-decoration:none;
+}
+.drawer-link-ko{font-size:clamp(18px,5vw,26px);font-weight:300;color:var(--ink);letter-spacing:-0.3px}
+.drawer-link-en{font-size:9px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:var(--gold);opacity:.7}
+.drawer-cta{
+  margin-top:clamp(20px,4vw,40px);display:block;
+  background:var(--ink);color:var(--cream);
+  font-size:10px;font-weight:300;letter-spacing:4px;text-transform:uppercase;
+  text-decoration:none;text-align:center;padding:clamp(14px,3vw,18px);
+}
+.drawer-bottom{
+  margin-top:clamp(20px,4vw,32px);
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:24px;
+}
+.drawer-tel{font-size:12px;font-weight:300;color:var(--muted);text-decoration:none}
+.drawer-sns{display:flex;gap:16px}
+.drawer-sns a{font-size:9px;font-weight:300;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-decoration:none}
+
+/* ── HERO ── */
+#hero{
+  position:relative;width:100%;
+  margin-top:60px;overflow:hidden;
+  min-height:calc(100vh - 60px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  padding:60px 24px 80px;
+}
+.hero-bg-img{
+  position:absolute;inset:0;
+  background:url('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1600&q=85') center/cover no-repeat;
+  z-index:0;
+}
+.hero-bg-img::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(20,16,12,0.52);
+}
+.hero-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
+.hero-en-tag{display:none}
+.hero-h1{
+  font-size:clamp(32px,5vw,72px);font-weight:700;
+  line-height:1.0;letter-spacing:-1.5px;color:#fff;
+  margin-bottom:12px;text-transform:uppercase;
+}
+.hero-h1-sub{
+  font-size:clamp(11px,1vw,13px);font-weight:300;
+  color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:32px;
+}
+.hero-cta-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn-hero{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;color:#fff;
+  font-size:8px;font-weight:400;letter-spacing:2.5px;text-transform:uppercase;
+  text-decoration:none;padding:9px 18px;
+  border:1px solid rgba(255,255,255,0.55);
+  transition:background .25s;
+}
+.btn-hero:hover{background:rgba(255,255,255,0.12);border-color:#fff}
+.btn-ghost{
+  font-size:8px;font-weight:400;letter-spacing:2.5px;text-transform:uppercase;
+  color:#fff;text-decoration:none;
+  border:1px solid rgba(255,255,255,0.55);
+  padding:9px 18px;
+  transition:background .25s,border-color .25s;
+}
+.btn-ghost:hover{background:rgba(255,255,255,0.12);border-color:#fff}
+.hero-stat{
+  display:flex;gap:40px;justify-content:center;flex-wrap:wrap;
+  margin-top:40px;padding-top:0;
+  border-top:none;
+  width:100%;max-width:480px;
+}
+.stat-num{font-size:22px;font-weight:200;color:#fff;letter-spacing:-0.5px;line-height:1}
+.stat-unit{font-size:13px;color:#fff}
+.stat-en{font-size:8px;font-weight:300;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.38);margin-top:6px}
+
+/* ── MARQUEE ── */
+.marquee-wrap{overflow:hidden;background:var(--surf);padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.marquee-track{display:flex;width:max-content;animation:mq 30s linear infinite}
+.marquee-track:hover{animation-play-state:paused}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.mq-item{
+  display:flex;align-items:center;gap:24px;padding:0 40px;white-space:nowrap;
+  font-size:10px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+}
+.mq-dot{width:3px;height:3px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.mq-en{color:var(--gold);opacity:.8;font-style:italic;font-family:var(--fs);font-size:12px;letter-spacing:1px}
+
+/* ── ABOUT ── */
+#about{background:var(--bg);padding:120px 40px}
+.about-eyebrow-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:56px}
+.about-eyebrow{
+  font-size:10px;font-weight:300;letter-spacing:4px;text-transform:uppercase;
+  color:var(--gold);display:flex;align-items:center;gap:12px;
+}
+.about-en-small{font-size:13px;font-weight:300;letter-spacing:1px;color:var(--muted);opacity:.6}
+.about-wrap{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.about-h2{
+  font-size:clamp(26px,2.8vw,42px);font-weight:600;
+  line-height:1.35;letter-spacing:-0.5px;color:#111;margin-bottom:6px;
+}
+.about-h2-en{
+  font-size:clamp(11px,1.1vw,13px);font-weight:300;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:28px;display:block;font-style:normal;
+}
+.about-p{font-size:14px;font-weight:400;line-height:1.75;color:#444;margin-bottom:40px;max-width:400px}
+.about-nums{display:flex;gap:10px;padding-top:0;border-top:none;flex-wrap:nowrap}
+.num-box{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1.5px solid var(--line);border-radius:10px;
+  padding:12px 16px;min-width:0;flex:1;
+}
+.num-n{font-size:22px;font-weight:300;color:var(--ink);letter-spacing:-0.5px;line-height:1}
+.num-n sup{font-size:12px;color:var(--gold)}
+.num-en{font-size:8px;font-weight:400;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.about-right{position:relative;padding-bottom:28px;padding-right:28px}
+.about-img{width:100%;height:520px;object-fit:cover;display:block}
+.about-badge{display:none}
+.about-right{position:relative;padding-bottom:0;padding-right:0}
+
+.svc-item{
+  display:grid;grid-template-columns:52px 1fr auto;
+  grid-template-rows:auto 0fr;
+  align-items:center;gap:0 24px;
+  padding:28px 0;border-bottom:1px solid var(--line);
+  transition:padding .3s,background .2s,grid-template-rows .4s ease;
+  position:relative;overflow:hidden;cursor:pointer;
+}
+.svc-item::after{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:var(--gold);transition:width .3s}
+.svc-item:hover{padding-left:20px;padding-right:20px;margin:0 -20px;background:rgba(124,85,51,.05)}
+.svc-item:hover::after,.svc-item.open::after{width:2px}
+.svc-item.open{padding-left:20px;padding-right:20px;margin:0 -20px;background:rgba(124,85,51,.05);grid-template-rows:auto 1fr}
+.svc-n{font-size:10px;font-weight:300;letter-spacing:2px;color:var(--gold-l);grid-row:1}
+.svc-texts{min-width:0;grid-column:2;grid-row:1;padding:4px 0}
+.svc-name{font-size:22px;font-weight:900;color:#111;display:block;letter-spacing:-.5px}
+.svc-name-en{font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#888;margin-top:5px;display:block}
+.svc-body{
+  grid-column:2;grid-row:2;
+  overflow:hidden;
+  font-size:14px;font-weight:400;color:#555;line-height:1.75;
+  max-height:0;transition:max-height .4s ease,padding .4s ease;
+}
+.svc-item.open .svc-body{max-height:160px;padding-top:12px;padding-bottom:8px}
+.svc-arr{
+  font-size:22px;font-weight:200;color:var(--line);
+  transition:color .2s,transform .2s;
+  flex-shrink:0;grid-row:1;line-height:1;justify-self:end;
+}
+.svc-item:hover .svc-arr,.svc-item.open .svc-arr{color:var(--gold)}
+.svc-item.open .svc-arr{transform:rotate(45deg)}
+
+/* ── WORK ── */
+#work{background:var(--surf);padding:80px 40px}
+.work-header{text-align:center;margin-bottom:48px}
+.work-eyebrow{font-size:10px;font-weight:400;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.work-h2{font-size:clamp(28px,3.5vw,52px);font-weight:700;letter-spacing:-1px;color:#111;margin-bottom:10px;line-height:1.15}
+.work-h2-en{font-size:13px;font-weight:400;color:var(--gold);letter-spacing:1px;margin-bottom:12px}
+.work-note{font-size:13px;font-weight:300;color:var(--muted);line-height:1.7}
+.work-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wc{position:relative;overflow:hidden;cursor:pointer}
+.wc img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .7s ease}
+.wc:hover img{transform:scale(1.04)}
+.wc-label{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:32px 16px 12px;
+  background:linear-gradient(to top,rgba(20,16,12,.75),transparent);
+}
+.wc-ko{font-size:15px;font-weight:600;color:#fff;display:block;margin-bottom:2px}
+.wc-en{font-size:10px;font-weight:400;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.55);font-style:normal}
+.wc-big{grid-column:1/3;height:340px}
+.wc-sm{height:260px}
+@media(max-width:768px){
+  #work{padding:60px 20px}
+  .work-grid2{grid-template-columns:1fr 1fr;gap:4px}
+  .wc-big{grid-column:1/3;height:220px}
+  .wc-sm{height:170px}
+}
+@media(max-width:480px){
+  .work-grid2{grid-template-columns:1fr 1fr;gap:3px}
+  .wc-big{grid-column:1/3;height:180px}
+  .wc-sm{height:140px}
+  .wc-ko{font-size:13px}
+  .wc-en{font-size:9px}
+}
+
+/* ── SERVICES ── */
+#services{background:var(--bg);padding:120px 40px}
+.svc-top{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:72px;padding-bottom:56px;border-bottom:1px solid var(--line)}
+.svc-eyebrow{font-size:10px;font-weight:300;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.svc-h2{font-size:clamp(24px,2.8vw,42px);font-weight:600;letter-spacing:-0.5px;line-height:1.3;color:#111}
+.svc-h2-en{font-size:clamp(12px,1.2vw,14px);font-weight:300;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:6px;font-style:normal}
+.svc-desc{font-size:14px;font-weight:400;line-height:1.75;color:#555}
+.svc-item{
+  display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:24px;
+  padding:28px 0;border-bottom:1px solid var(--line);
+  transition:padding .3s,background .2s;position:relative;overflow:hidden;
+}
+.svc-item::after{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:var(--gold);transition:width .3s}
+.svc-item:hover{padding-left:20px;padding-right:20px;margin:0 -20px;background:rgba(196,168,130,.08)}
+.svc-item:hover::after{width:2px}
+.svc-n{font-size:10px;font-weight:300;letter-spacing:2px;color:var(--gold-l)}
+.svc-texts{}
+.svc-name{font-size:17px;font-weight:300;color:var(--ink);display:block}
+.svc-name-en{font-family:var(--fs);font-size:12px;font-style:italic;color:var(--muted);margin-top:2px;display:block}
+.svc-arr{font-size:16px;color:var(--line);transition:color .2s,transform .2s}
+.svc-item:hover .svc-arr{color:var(--gold);transform:translate(3px,-3px)}
+
+/* ── FAQ ── */
+#faq{background:var(--surf);padding:100px 40px}
+.faq-wrap{max-width:800px;margin:0 auto}
+.faq-head{text-align:center;margin-bottom:64px}
+.faq-eyebrow{font-size:10px;font-weight:300;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.faq-h2{font-size:clamp(24px,3vw,40px);font-weight:600;letter-spacing:-0.5px;color:#111;margin-bottom:6px}
+.faq-h2-en{font-size:clamp(12px,1.2vw,15px);font-weight:300;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-q{
+  width:100%;background:none;border:none;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px 0;text-align:left;
+  font-family:var(--f);font-size:15px;font-weight:400;
+  color:#111;letter-spacing:-.2px;transition:color .2s;gap:16px;
+}
+.faq-q:hover{color:var(--gold)}
+.faq-plus{
+  width:26px;height:26px;border:1px solid var(--line);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:200;color:var(--muted);flex-shrink:0;
+  transition:all .3s;
+}
+.faq-item.open .faq-plus{background:var(--ink);color:var(--cream);border-color:var(--ink);transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.faq-a-in{padding:0 0 24px;font-size:14px;font-weight:400;color:#555;line-height:1.75}
+.faq-item.open .faq-a{max-height:300px}
+
+/* ── CTA ── */
+#cta{background:var(--ink);padding:120px 40px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.cta-eyebrow{font-size:10px;font-weight:300;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+.cta-h2{font-size:clamp(28px,3.5vw,52px);font-weight:600;line-height:1.2;letter-spacing:-1px;color:#fff;margin-bottom:8px}
+.cta-h2-en{font-size:clamp(11px,1.1vw,13px);font-weight:300;letter-spacing:3px;text-transform:uppercase;color:rgba(247,243,238,.4);font-style:normal}
+.cta-p{font-size:13px;font-weight:300;color:rgba(247,243,238,.45);line-height:1.75;margin-bottom:32px}
+.btn-cta{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--gold);color:var(--cream);
+  font-size:10px;font-weight:400;letter-spacing:3px;text-transform:uppercase;
+  text-decoration:none;padding:16px 32px;margin-bottom:12px;
+  transition:background .25s;
+}
+.btn-cta:hover{background:var(--gold-l);color:var(--ink)}
+.btn-cta-line{
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(247,243,238,.15);color:rgba(247,243,238,.5);
+  font-size:10px;font-weight:300;letter-spacing:3px;text-transform:uppercase;
+  text-decoration:none;padding:16px 32px;
+  transition:border-color .25s,color .25s;
+}
+.btn-cta-line:hover{border-color:var(--gold);color:var(--gold-l)}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.06);padding:72px 40px 40px}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:56px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.07)}
+.footer-logo{font-size:13px;font-weight:400;letter-spacing:5px;text-transform:uppercase;color:var(--cream);margin-bottom:6px}
+.footer-logo .en{color:var(--gold-l);font-weight:300}
+.footer-logo-en{font-family:var(--fs);font-size:11px;font-style:italic;color:rgba(247,243,238,.25);margin-bottom:16px}
+.footer-tagline{font-size:12px;font-weight:200;color:rgba(247,243,238,.3);line-height:1.9;max-width:220px}
+.footer-h{font-size:9px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:var(--gold-l);opacity:.6;margin-bottom:20px}
+.footer-ul{list-style:none}
+.footer-ul li{margin-bottom:13px}
+.footer-ul a{font-size:12px;font-weight:200;color:rgba(247,243,238,.35);text-decoration:none;transition:color .2s;letter-spacing:.3px}
+.footer-ul a:hover{color:var(--cream)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:28px;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:10px;font-weight:200;color:rgba(247,243,238,.18);letter-spacing:1px}
+.footer-sns{display:flex;gap:24px}
+.footer-sns a{font-size:9px;font-weight:300;letter-spacing:2.5px;text-transform:uppercase;color:rgba(247,243,238,.25);text-decoration:none;transition:color .2s}
+.footer-sns a:hover{color:var(--gold-l)}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+
+/* ══════════ MOBILE FIRST ══════════ */
+@media(max-width:900px){
+  nav{padding:0 20px;height:56px}
+  .nav-center,.nav-btn{display:none}
+  .hamburger{display:flex}
+
+  #hero{padding:40px 20px 60px;min-height:calc(100svh - 56px);margin-top:56px}
+  .hero-h1{font-size:clamp(32px,9vw,48px);letter-spacing:-1.5px}
+  .hero-stat{gap:28px;margin-top:40px;padding-top:28px}
+  .stat-num{font-size:24px}
+
+  #about{padding:72px 20px}
+  .about-eyebrow-wrap{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:40px}
+  .about-wrap{grid-template-columns:1fr;gap:40px}
+  .about-img{height:280px}
+  .about-right{padding:0}
+  .about-badge{width:120px;height:120px;bottom:-16px;right:0}
+  .badge-n{font-size:28px}
+  .about-nums{gap:24px;flex-wrap:wrap}
+  .num-n{font-size:32px}
+
+  #work{padding:60px 20px}
+
+  #services{padding:72px 20px}
+  .svc-top{grid-template-columns:1fr;gap:20px;margin-bottom:40px;padding-bottom:40px}
+  .svc-item{grid-template-columns:40px 1fr auto;gap:16px;padding:22px 0}
+  .svc-item:hover{padding-left:12px;padding-right:12px;margin:0 -12px}
+
+  #faq{padding:72px 20px}
+  .faq-q{font-size:13px;padding:20px 0}
+
+  #cta{padding:72px 20px;grid-template-columns:1fr;gap:36px}
+  .btn-cta,.btn-cta-line{padding:16px 24px}
+
+  footer{padding:56px 20px 32px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .footer-brand-col{grid-column:1/-1}
+  .footer-bottom{flex-direction:column;text-align:center;gap:16px}
+
+  .drawer{padding:0}
+}
+
+@media(max-width:480px){
+  .hero-h1{font-size:30px}
+  .hero-stat{gap:16px}
+  .stat-num{font-size:20px}
+  .work-grid{grid-template-columns:1fr}
+  .wc-1,.wc-2,.wc-3,.wc-4,.wc-5{grid-column:1;height:200px}
+  .footer-grid{grid-template-columns:1fr}
+  .footer-brand-col{grid-column:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<!-- 드로어 -->
+<div class="drawer" id="drawer">
+  <div class="drawer-top">
+    <div class="drawer-logo">소파<span class="en">스튜디오</span></div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-links">
+    <a href="#about" class="drawer-link" onclick="closeDrawer()">
+      <span class="drawer-link-ko">소개</span>
+      <span class="drawer-link-en">About</span>
+    </a>
+    <a href="#work" class="drawer-link" onclick="closeDrawer()">
+      <span class="drawer-link-ko">작업사례</span>
+      <span class="drawer-link-en">Portfolio</span>
+    </a>
+    <a href="#services" class="drawer-link" onclick="closeDrawer()">
+      <span class="drawer-link-ko">서비스</span>
+      <span class="drawer-link-en">Services</span>
+    </a>
+    <a href="#faq" class="drawer-link" onclick="closeDrawer()">
+      <span class="drawer-link-ko">자주 묻는 질문</span>
+      <span class="drawer-link-en">FAQ</span>
+    </a>
+  </div>
+  <a href="#cta" class="drawer-cta" onclick="closeDrawer()">무료 상담 — Free Consultation</a>
+  <div class="drawer-bottom">
+    <a href="tel:010-1234-5678" class="drawer-tel">010-1234-5678</a>
+    <div class="drawer-sns">
+      <a href="#">IG</a><a href="#">KT</a><a href="#">NB</a>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">소파<span class="en">스튜디오</span></a>
+  <ul class="nav-center">
+    <li><a href="#about">소개</a></li>
+    <li><a href="#work">작업사례</a></li>
+    <li><a href="#services">서비스</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#cta" class="nav-btn">Free Consultation</a>
+  <button class="hamburger" id="ham" onclick="toggleDrawer()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-img"></div>
+  <div class="hero-inner">
+    <p class="hero-h1-sub reveal">Since 1989</p>
+    <h1 class="hero-h1 reveal">소파스튜디오</h1>
+    <div class="hero-cta-wrap reveal">
+      <a href="#cta" class="btn-hero">무료 상담 →</a>
+      <a href="#work" class="btn-ghost">Portfolio 보기</a>
+    </div>
+    <div class="hero-stat reveal">
+      <div class="stat-item">
+        <div class="stat-num">35<span class="stat-unit">년</span></div>
+        <div class="stat-en">Experience</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">500<span class="stat-unit">+</span></div>
+        <div class="stat-en">Projects</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">98<span class="stat-unit">%</span></div>
+        <div class="stat-en">Satisfaction</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="mq-item"><span>가죽 리폼</span><span class="mq-dot"></span><span class="mq-en">Leather Reform</span><span class="mq-dot"></span><span>패브릭 교체</span><span class="mq-dot"></span><span class="mq-en">Fabric Renewal</span><span class="mq-dot"></span><span>내부 복원</span><span class="mq-dot"></span><span class="mq-en">Interior Restoration</span><span class="mq-dot"></span><span>맞춤 리폼</span><span class="mq-dot"></span><span class="mq-en">Custom Reform</span><span class="mq-dot"></span></div>
+    <div class="mq-item"><span>가죽 리폼</span><span class="mq-dot"></span><span class="mq-en">Leather Reform</span><span class="mq-dot"></span><span>패브릭 교체</span><span class="mq-dot"></span><span class="mq-en">Fabric Renewal</span><span class="mq-dot"></span><span>내부 복원</span><span class="mq-dot"></span><span class="mq-en">Interior Restoration</span><span class="mq-dot"></span><span>맞춤 리폼</span><span class="mq-dot"></span><span class="mq-en">Custom Reform</span><span class="mq-dot"></span></div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-eyebrow-wrap reveal">
+    <div class="about-eyebrow">About Us</div>
+    <div class="about-en-small">Since 1989</div>
+  </div>
+  <div class="about-wrap">
+    <div class="about-left">
+      <h2 class="about-h2 reveal">장인의 손길로<br>완성되는 리폼</h2>
+      <span class="about-h2-en reveal d1">Crafted by a Master Artisan</span>
+      <p class="about-p reveal d2">35년 경력의 장인이 직접 손으로 완성합니다. 고객이 아끼는 소파를 정성스럽게 복원하여 더 오래, 더 아름답게 사용할 수 있도록 도와드립니다. 버려지는 가구를 되살리는 일이 환경과 추억을 모두 지키는 최선이라 믿습니다.</p>
+      <div class="about-nums reveal d3">
+        <div class="num-box">
+          <div class="num-n">35<sup>년</sup></div>
+          <div class="num-en">Experience</div>
+        </div>
+        <div class="num-box">
+          <div class="num-n">500<sup>+</sup></div>
+          <div class="num-en">Projects</div>
+        </div>
+        <div class="num-box">
+          <div class="num-n">98<sup>%</sup></div>
+          <div class="num-en">Satisfaction</div>
+        </div>
+      </div>
+    </div>
+    <div class="about-right reveal">
+      <img class="about-img" src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=900&q=80" alt="공방">
+      <div class="about-badge">
+        <div class="badge-n">500</div>
+        <div class="badge-en">Projects<br>Done</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORK -->
+<section id="work">
+  <div class="work-header reveal">
+    <div class="work-eyebrow">Portfolio</div>
+    <h2 class="work-h2">작업 사례</h2>
+    <div class="work-note">정성껏 선별한 원단과 장인의 손길로<br>완성된 리폼 사례들입니다.</div>
+  </div>
+  <div class="work-grid2">
+    <div class="wc wc-big reveal">
+      <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=80" alt="">
+      <div class="wc-label">
+        <span class="wc-ko">3인 가죽 소파</span>
+        <span class="wc-en">Navy Leather Reform</span>
+      </div>
+    </div>
+    <div class="wc wc-sm reveal">
+      <img src="https://images.unsplash.com/photo-1583845112203-29329902332e?w=600&q=80" alt="">
+      <div class="wc-label">
+        <span class="wc-ko">ㄱ자 소파 리폼</span>
+        <span class="wc-en">L-Shape Reform</span>
+      </div>
+    </div>
+    <div class="wc wc-sm reveal">
+      <img src="https://images.unsplash.com/photo-1567016432779-094069958ea5?w=600&q=80" alt="">
+      <div class="wc-label">
+        <span class="wc-ko">벨벳 2인 소파</span>
+        <span class="wc-en">Velvet Loveseat</span>
+      </div>
+    </div>
+    <div class="wc wc-sm reveal">
+      <img src="https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=600&q=80" alt="">
+      <div class="wc-label">
+        <span class="wc-ko">클래식 암체어</span>
+        <span class="wc-en">Classic Armchair</span>
+      </div>
+    </div>
+    <div class="wc wc-sm reveal">
+      <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80" alt="">
+      <div class="wc-label">
+        <span class="wc-ko">패브릭 3인 소파</span>
+        <span class="wc-en">Fabric 3-Seater</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="svc-top">
+    <div>
+      <div class="svc-eyebrow reveal">Services</div>
+      <h2 class="svc-h2 reveal">35년 장인의<br>맞춤 리폼</h2>
+      <div class="svc-h2-en reveal d1">Tailored Reform by Master</div>
+    </div>
+    <div class="svc-desc reveal d1">고객의 소파를 처음 보는 순간부터 완성까지, 모든 과정을 장인이 직접 책임집니다. 소재 선택부터 마감까지 타협 없이 작업합니다.</div>
+  </div>
+  <div>
+    <div class="svc-item reveal" onclick="toggleSvc(this)">
+      <span class="svc-n">01</span>
+      <div class="svc-texts">
+        <span class="svc-name">가죽 리폼</span>
+        <span class="svc-name-en">Leather Reform</span>
+      </div>
+      <span class="svc-arr">+</span>
+      <div class="svc-body">천연가죽·인조가죽 전면 교체. 35년 경력 장인이 스크래치, 변색, 박리 문제를 완벽히 해결하고 원하는 컬러로 새롭게 제작합니다.</div>
+    </div>
+    <div class="svc-item reveal" onclick="toggleSvc(this)">
+      <span class="svc-n">02</span>
+      <div class="svc-texts">
+        <span class="svc-name">패브릭 교체</span>
+        <span class="svc-name-en">Fabric Renewal</span>
+      </div>
+      <span class="svc-arr">+</span>
+      <div class="svc-body">벨벳, 린넨, 울, 마이크로파이버 등 300여 종의 원단 중 취향에 맞는 소재를 직접 고르실 수 있습니다.</div>
+    </div>
+    <div class="svc-item reveal" onclick="toggleSvc(this)">
+      <span class="svc-n">03</span>
+      <div class="svc-texts">
+        <span class="svc-name">내부 복원</span>
+        <span class="svc-name-en">Interior Restoration</span>
+      </div>
+      <span class="svc-arr">+</span>
+      <div class="svc-body">스프링 교체, 쿠션 복원, 프레임 보강 등 소파 내부 구조를 장인이 직접 수리하여 원래의 탄력을 되찾아 드립니다.</div>
+    </div>
+    <div class="svc-item reveal" onclick="toggleSvc(this)">
+      <span class="svc-n">04</span>
+      <div class="svc-texts">
+        <span class="svc-name">픽업 & 무료 배송</span>
+        <span class="svc-name-en">Free Pickup & Delivery</span>
+      </div>
+      <span class="svc-arr">+</span>
+      <div class="svc-body">서울 및 수도권 전 지역 무료 픽업·배송 서비스를 제공합니다. 직접 방문하지 않아도 편리하게 이용 가능합니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-wrap">
+    <div class="faq-head reveal">
+      <div class="faq-eyebrow">FAQ</div>
+      <h2 class="faq-h2">자주 묻는 질문</h2>
+      <div class="faq-h2-en">Frequently Asked Questions</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="toggleFaq(this)">리폼 기간은 얼마나 걸리나요?<span class="faq-plus">+</span></button>
+      <div class="faq-a"><div class="faq-a-in">패브릭 교체는 5~7일, 가죽 리폼은 7~10일, 풀 리노베이션은 14~21일 정도 소요됩니다. 35년 경력의 장인이 직접 작업하므로 품질을 보장합니다.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="toggleFaq(this)">픽업 서비스는 어디까지 가능한가요?<span class="faq-plus">+</span></button>
+      <div class="faq-a"><div class="faq-a-in">서울 전 지역 및 경기도(성남, 용인, 수원, 안양, 부천, 고양, 파주 등), 인천 전 지역은 무료 픽업 및 배송이 가능합니다. 그 외 지역은 별도 협의 후 진행합니다.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="toggleFaq(this)">원단·가죽 샘플을 미리 볼 수 있나요?<span class="faq-plus">+</span></button>
+      <div class="faq-a"><div class="faq-a-in">네, 가능합니다. 픽업 방문 시 샘플북을 지참하며, 사전 요청 시 원하는 샘플을 말씀해 주시면 감사합니다.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="toggleFaq(this)">소파 외에 다른 가구도 리폼 가능한가요?<span class="faq-plus">+</span></button>
+      <div class="faq-a"><div class="faq-a-in">소파 외에 암체어, 식탁 의자, 오피스 체어, 침대 헤드보드 등 다양한 패브릭 가구의 리폼이 가능합니다. 35년 경력의 장인이 직접 상담해 드립니다.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="toggleFaq(this)">가격 책정은 어떻게 되나요?<span class="faq-plus">+</span></button>
+      <div class="faq-a"><div class="faq-a-in">소파 크기, 선택 소재, 작업 범위에 따라 견적이 달라집니다. 사진을 보내주시면 친절한 상담 도와드리겠습니다.</div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" onclick="toggleFaq(this)">상담은 어떻게 시작하면 되나요?<span class="faq-plus">+</span></button>
+      <div class="faq-a"><div class="faq-a-in">전화(010-1234-5678) 또는 카카오톡(@소파스튜디오)으로 소파 사진을 보내주시면 35년 경력 장인이 직접 무료로 상담해 드립니다.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-left reveal">
+    <div class="cta-eyebrow">Get Started</div>
+    <h2 class="cta-h2">35년 경력 장인에게<br>맡겨보세요</h2>
+    <div class="cta-h2-en">Trust the Master's Hands</div>
+  </div>
+  <div class="cta-right reveal d1">
+    <p class="cta-p">사진 한 장만 보내주세요.<br>무료 상담부터 바로 시작합니다.<br>서울·수도권 무료 픽업 & 배송.</p>
+    <a href="tel:010-1234-5678" class="btn-cta">무료 상담 받기 — Free Consult →</a>
+    <a href="#work" class="btn-cta-line">Portfolio 보기</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand-col">
+      <div class="footer-logo">소파<span class="en">스튜디오</span></div>
+      <div class="footer-logo-en">Sofa Studio — Master Reform Atelier</div>
+      <p class="footer-tagline">35년 경력 장인이 직접 운영하는 소파 리폼 전문 공방. 서울 성동구 성수동에서 소중한 가구를 되살립니다.</p>
+    </div>
+    <div>
+      <div class="footer-h">Services</div>
+      <ul class="footer-ul">
+        <li><a href="#services">가죽 리폼</a></li>
+        <li><a href="#services">패브릭 교체</a></li>
+        <li><a href="#services">내부 복원</a></li>
+        <li><a href="#services">픽업 & 배송</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-h">Info</div>
+      <ul class="footer-ul">
+        <li><a href="#about">스튜디오 소개</a></li>
+        <li><a href="#work">작업 사례</a></li>
+        <li><a href="#faq">자주 묻는 질문</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-h">Contact</div>
+      <ul class="footer-ul">
+        <li><a href="tel:010-1234-5678">010-1234-5678</a></li>
+        <li><a href="#">카카오톡 채널</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Naver Blog</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2024 소파스튜디오 · Sofa Studio. All rights reserved.</span>
+    <div class="footer-sns">
+      <a href="#">Instagram</a>
+      <a href="#">KakaoTalk</a>
+      <a href="#">Naver</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// 커스텀 커서 (데스크탑만)
+const isFine = window.matchMedia('(pointer:fine)').matches;
+if(isFine){
+  const cur=document.getElementById('cursor'),ring=document.getElementById('ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+  (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop)})();
+  document.querySelectorAll('a,button,.svc-item,.wc').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cur.style.cssText+='width:16px;height:16px;background:var(--gold)';ring.style.cssText+='width:52px;height:52px;border-color:var(--gold)'});
+    el.addEventListener('mouseleave',()=>{cur.style.cssText+='width:8px;height:8px;background:var(--ink)';ring.style.cssText+='width:36px;height:36px;border-color:var(--gold)'});
+  });
+}
+
+// Nav
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>16));
+
+// Reveal
+new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');} });
+},{threshold:0.06,rootMargin:'0px 0px -30px 0px'}).observe||
+(()=>{
+  const ro=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});
+  },{threshold:0.06,rootMargin:'0px 0px -30px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+})();
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});},{threshold:0.06,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// 서비스 아코디언
+function toggleSvc(el){
+  const isOpen=el.classList.contains('open');
+  document.querySelectorAll('.svc-item').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) el.classList.add('open');
+}
+
+// FAQ
+function toggleFaq(btn){
+  const item=btn.parentElement,open=item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!open)item.classList.add('open');
+}
+
+// 드로어
+const ham=document.getElementById('ham');
+function openDrawer(){document.getElementById('drawer').classList.add('open');ham.classList.add('open');document.body.style.overflow='hidden'}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');ham.classList.remove('open');document.body.style.overflow=''}
+function toggleDrawer(){document.getElementById('drawer').classList.contains('open')?closeDrawer():openDrawer()}
+</script>
+</body>
+</html>
